@@ -1,0 +1,8 @@
+{
+  "name": "EMA Scalping (9/15)",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Quick scalping strategy using 9 and 15 EMA crossover.",
+  "status": "approved",
+  "tags": ["scalping", "ema", "momentum"]
+}

@@ -1,0 +1,10 @@
+{
+    "name": "SMA Crossover",
+    "version": "1.0.0",
+    "author": "Trading Platform",
+    "description": "Simple Moving Average crossover strategy — generates BUY when short SMA crosses above long SMA, SELL when it crosses below. Tuned for NSE equities.",
+    "tags": ["momentum", "trend-following", "sma", "beginner"],
+    "supported_exchanges": ["NSE_EQ", "BSE_EQ"],
+    "timeframe": "1d",
+    "status": "approved"
+}

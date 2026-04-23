@@ -1,0 +1,5 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  gap_threshold_pct: 0.5
+  min_confidence: 0.6

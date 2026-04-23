@@ -1,0 +1,7 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  ema_fast: 50
+  ema_slow: 200
+  min_confidence: 0.7
+  rr_ratio: 10.0

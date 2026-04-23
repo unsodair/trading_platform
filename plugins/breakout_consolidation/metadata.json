@@ -1,0 +1,8 @@
+{
+  "name": "Breakout Strategy",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Trading breakouts from consolidation zones with high volume.",
+  "status": "approved",
+  "tags": ["breakout", "price-action", "volume"]
+}

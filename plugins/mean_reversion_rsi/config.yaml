@@ -1,0 +1,8 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018", "NSE_EQ|INE040A01034"]
+parameters:
+  rsi_period: 14
+  rsi_oversold: 30
+  rsi_overbought: 70
+  min_confidence: 0.6
+  rr_ratio: 3.0

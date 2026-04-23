@@ -1,0 +1,8 @@
+{
+  "name": "Mean Reversion (RSI)",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Mean reversion strategy using RSI oversold/overbought levels.",
+  "status": "approved",
+  "tags": ["mean-reversion", "rsi", "momentum"]
+}

@@ -1,0 +1,7 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  period: 10
+  multiplier: 3.0
+  min_confidence: 0.6
+  trailing_sl: true

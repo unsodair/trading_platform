@@ -1,0 +1,8 @@
+{
+  "name": "Supertrend Follower",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Trend following strategy using Supertrend indicator.",
+  "status": "approved",
+  "tags": ["trend", "supertrend", "volatility"]
+}

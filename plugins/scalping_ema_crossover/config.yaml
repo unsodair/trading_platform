@@ -1,0 +1,8 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  ema_fast: 9
+  ema_slow: 15
+  min_confidence: 0.5
+  target_points: 15
+  stop_loss_points: 7

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  trading-platform:
+    build: .
+    container_name: indian-markets-trader
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persistent storage for trade database
+      - ./data:/app/data
+      # Hot-loading for strategy plugins
+      - ./plugins:/app/plugins
+      # Environment variables
+      - ./.env:/app/.env
+    restart: always
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///app/data/trading_platform.db
+      # You can override other settings here if needed

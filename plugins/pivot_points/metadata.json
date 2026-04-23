@@ -1,0 +1,8 @@
+{
+  "name": "Pivot Points S/R",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Trading bounces or breakouts from Pivot Point levels (S1, R1, etc).",
+  "status": "approved",
+  "tags": ["pivot-points", "support-resistance"]
+}

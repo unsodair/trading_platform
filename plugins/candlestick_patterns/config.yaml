@@ -1,0 +1,5 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  min_confidence: 0.6
+  rr_ratio: 3.0

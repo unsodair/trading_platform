@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Indian Markets Trading Platform — AI-powered algorithmic trading dashboard">
+    <title>Trading Platform — Indian Markets</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- Ambient Background -->
+<div class="ambient-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+</div>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <div class="logo-icon">📊</div>
+            <span>Trading Platform</span>
+        </div>
+        <div class="header-actions">
+            <div class="broker-status">
+                <span class="status-dot" id="broker-dot"></span>
+                <span id="broker-label">Checking connection…</span>
+            </div>
+            <div class="mode-toggle">
+                <button class="mode-btn" id="mode-paper" onclick="switchMode('paper')">📝 Paper</button>
+                <button class="mode-btn" id="mode-live" onclick="switchMode('live')">🔴 Live</button>
+            </div>
+            <button class="btn btn-settings" id="settings-toggle-btn" onclick="toggleSettingsPanel()">
+                ⚙️ Settings
+            </button>
+            <button class="btn btn-outline" onclick="refreshDashboard()">
+                ↻ Refresh
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- SETTINGS PANEL (Slide-out Drawer) -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="settings-overlay" id="settings-overlay" onclick="toggleSettingsPanel()"></div>
+<aside class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+        <h2 class="settings-title">⚙️ Configuration</h2>
+        <button class="settings-close" onclick="toggleSettingsPanel()">✕</button>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="tab-broker" onclick="switchSettingsTab(this, 'tab-broker')">
+            🏦 Broker
+        </button>
+        <button class="settings-tab" data-tab="tab-llm" onclick="switchSettingsTab(this, 'tab-llm')">
+            🤖 LLM
+        </button>
+        <button class="settings-tab" data-tab="tab-risk" onclick="switchSettingsTab(this, 'tab-risk')">
+            🛡️ Risk
+        </button>
+        <button class="settings-tab" data-tab="tab-github" onclick="switchSettingsTab(this, 'tab-github')">
+            🔗 GitHub
+        </button>
+    </div>
+
+    <div class="settings-body">
+
+        <!-- ═══ Broker Tab ═══ -->
+        <div class="settings-tab-content active" id="tab-broker">
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3>Dhan Broker Credentials</h3>
+                    <span class="config-status" id="broker-config-status">Not configured</span>
+                </div>
+                <p class="settings-help">
+                    Enter your <a href="https://dhanhq.co" target="_blank" rel="noopener">Dhan</a> API credentials. 
+                    These are used for all broker operations — market data, orders, holdings.
+                </p>
+
+                <div class="form-group">
+                    <label for="input-dhan-client-id">Client ID</label>
+                    <input type="text" id="input-dhan-client-id" placeholder="Enter your Dhan Client ID" autocomplete="off" spellcheck="false">
+                    <span class="form-hint" id="hint-dhan-client-id"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-dhan-access-token">Access Token</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="input-dhan-access-token" placeholder="Enter your Dhan Access Token" autocomplete="off" spellcheck="false">
+                        <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('input-dhan-access-token', this)">👁️</button>
+                    </div>
+                    <span class="form-hint" id="hint-dhan-token"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveBrokerConfig()">
+                        💾 Save Broker Config
+                    </button>
+                    <button class="btn btn-outline" onclick="testBrokerConnection()">
+                        🔌 Test Connection
+                    </button>
+                </div>
+                <div class="form-feedback" id="broker-feedback"></div>
+            </div>
+        </div>
+
+        <!-- ═══ LLM Tab ═══ -->
+        <div class="settings-tab-content" id="tab-llm">
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3>LLM Provider</h3>
+                    <span class="config-status" id="llm-config-status">Not configured</span>
+                </div>
+                <p class="settings-help">
+                    Select which LLM to use for trading decisions. 
+                    All providers return the same JSON schema for interchangeable use.
+                </p>
+
+                <!-- LLM Selector Cards -->
+                <div class="llm-provider-grid" id="llm-provider-grid">
+                    <div class="llm-provider-card" data-provider="openai" onclick="selectLLMProvider('openai')">
+                        <div class="llm-provider-icon">🧠</div>
+                        <div class="llm-provider-name">OpenAI</div>
+                        <div class="llm-provider-desc">GPT-4o, GPT-4 Turbo</div>
+                        <div class="llm-provider-check">✓</div>
+                    </div>
+                    <div class="llm-provider-card" data-provider="anthropic" onclick="selectLLMProvider('anthropic')">
+                        <div class="llm-provider-icon">🤖</div>
+                        <div class="llm-provider-name">Anthropic</div>
+                        <div class="llm-provider-desc">Claude 3.5 Sonnet, Opus</div>
+                        <div class="llm-provider-check">✓</div>
+                    </div>
+                    <div class="llm-provider-card" data-provider="gemini" onclick="selectLLMProvider('gemini')">
+                        <div class="llm-provider-icon">💎</div>
+                        <div class="llm-provider-name">Google Gemini</div>
+                        <div class="llm-provider-desc">Gemini 2.0 Flash, Pro</div>
+                        <div class="llm-provider-check">✓</div>
+                    </div>
+                    <div class="llm-provider-card" data-provider="ollama" onclick="selectLLMProvider('ollama')">
+                        <div class="llm-provider-icon">🦙</div>
+                        <div class="llm-provider-name">Ollama (Local)</div>
+                        <div class="llm-provider-desc">Llama 3.1, Mistral, etc.</div>
+                        <div class="llm-provider-check">✓</div>
+                    </div>
+                </div>
+
+                <!-- OpenAI Config -->
+                <div class="llm-config-panel" id="config-openai">
+                    <h4 class="llm-config-title">OpenAI Configuration</h4>
+                    <div class="form-group">
+                        <label for="input-openai-key">API Key</label>
+                        <div class="input-with-toggle">
+                            <input type="password" id="input-openai-key" placeholder="sk-..." autocomplete="off" spellcheck="false">
+                            <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('input-openai-key', this)">👁️</button>
+                        </div>
+                        <span class="form-hint" id="hint-openai-key"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-openai-model">Model</label>
+                        <select id="input-openai-model">
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Anthropic Config -->
+                <div class="llm-config-panel" id="config-anthropic" style="display:none;">
+                    <h4 class="llm-config-title">Anthropic Configuration</h4>
+                    <div class="form-group">
+                        <label for="input-anthropic-key">API Key</label>
+                        <div class="input-with-toggle">
+                            <input type="password" id="input-anthropic-key" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+                            <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('input-anthropic-key', this)">👁️</button>
+                        </div>
+                        <span class="form-hint" id="hint-anthropic-key"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-anthropic-model">Model</label>
+                        <select id="input-anthropic-model">
+                            <option value="claude-sonnet-4-20250514">Claude 3.5 Sonnet</option>
+                            <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                            <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Gemini Config -->
+                <div class="llm-config-panel" id="config-gemini" style="display:none;">
+                    <h4 class="llm-config-title">Google Gemini Configuration</h4>
+                    <div class="form-group">
+                        <label for="input-gemini-key">API Key</label>
+                        <div class="input-with-toggle">
+                            <input type="password" id="input-gemini-key" placeholder="Enter Gemini API Key" autocomplete="off" spellcheck="false">
+                            <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('input-gemini-key', this)">👁️</button>
+                        </div>
+                        <span class="form-hint" id="hint-gemini-key"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-gemini-model">Model</label>
+                        <select id="input-gemini-model">
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Ollama Config -->
+                <div class="llm-config-panel" id="config-ollama" style="display:none;">
+                    <h4 class="llm-config-title">Ollama (Local) Configuration</h4>
+                    <div class="form-group">
+                        <label for="input-ollama-host">Host URL</label>
+                        <input type="text" id="input-ollama-host" placeholder="http://localhost:11434" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-ollama-model">Model</label>
+                        <input type="text" id="input-ollama-model" placeholder="llama3.1" autocomplete="off" spellcheck="false">
+                        <span class="form-hint">Enter the exact model name as listed by <code>ollama list</code></span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveLLMConfig()">
+                        💾 Save LLM Config
+                    </button>
+                    <button class="btn btn-outline" onclick="testLLMConnection()">
+                        🔌 Test Connection
+                    </button>
+                </div>
+                <div class="form-feedback" id="llm-feedback"></div>
+            </div>
+        </div>
+
+        <!-- ═══ Risk Tab ═══ -->
+        <div class="settings-tab-content" id="tab-risk">
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3>Risk Controls</h3>
+                </div>
+                <p class="settings-help">
+                    Modify hard risk limits at runtime. These are non-bypassable guardrails applied to every order.
+                </p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="input-max-loss">Max Daily Loss (₹)</label>
+                        <input type="number" id="input-max-loss" placeholder="5000" step="500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-max-order">Max Order Size (₹)</label>
+                        <input type="number" id="input-max-order" placeholder="100000" step="5000" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="input-max-positions">Max Open Positions</label>
+                        <input type="number" id="input-max-positions" placeholder="10" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-cooldown">Cooldown (seconds)</label>
+                        <input type="number" id="input-cooldown" placeholder="30" min="0" max="600">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="input-trading-start">Trading Start (IST)</label>
+                        <input type="text" id="input-trading-start" placeholder="09:15">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-trading-end">Trading End (IST)</label>
+                        <input type="text" id="input-trading-end" placeholder="15:30">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-stop-loss">Mandatory Stop Loss (%)</label>
+                    <input type="number" id="input-stop-loss" placeholder="2.0" step="0.5" min="0.5" max="20">
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveRiskConfig()">
+                        💾 Save Risk Controls
+                    </button>
+                </div>
+                <div class="form-feedback" id="risk-feedback"></div>
+            </div>
+        </div>
+
+        <!-- ═══ GitHub Tab ═══ -->
+        <div class="settings-tab-content" id="tab-github">
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <h3>GitHub Integration</h3>
+                </div>
+                <p class="settings-help">
+                    A GitHub personal access token is required to search for trading strategies on GitHub.
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">Generate one here →</a>
+                </p>
+
+                <div class="form-group">
+                    <label for="input-github-token">Personal Access Token</label>
+                    <div class="input-with-toggle">
+                        <input type="password" id="input-github-token" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+                        <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility('input-github-token', this)">👁️</button>
+                    </div>
+                    <span class="form-hint" id="hint-github-token"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveGithubConfig()">
+                        💾 Save Token
+                    </button>
+                </div>
+                <div class="form-feedback" id="github-feedback"></div>
+            </div>
+        </div>
+
+    </div>
+</aside>
+
+
+<!-- Main Content -->
+<main class="main">
+
+    <!-- Stats Row -->
+    <section class="stats-row" id="stats-row">
+        <div class="stat-card accent">
+            <div class="stat-label">Today's P&L</div>
+            <div class="stat-value" id="stat-pnl">₹0.00</div>
+            <div class="stat-sub" id="stat-pnl-sub">initializing…</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Open Positions</div>
+            <div class="stat-value" id="stat-positions">0</div>
+            <div class="stat-sub" id="stat-positions-sub">current active trades</div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-label">Active Strategies</div>
+            <div class="stat-value" id="stat-strategies">0</div>
+            <div class="stat-sub" id="stat-strategies-sub">loaded plugins</div>
+        </div>
+        <div class="stat-card cyan">
+            <div class="stat-label">Available Funds</div>
+            <div class="stat-value" id="stat-funds">₹0.00</div>
+            <div class="stat-sub" id="stat-funds-sub">margin available</div>
+        </div>
+    </section>
+
+    <!-- Config Alert Banner (shown when broker/LLM not configured) -->
+    <section class="config-alert" id="config-alert" style="display:none;">
+        <div class="config-alert-inner">
+            <div class="config-alert-icon">⚠️</div>
+            <div class="config-alert-text">
+                <strong>Setup Required</strong> — 
+                <span id="config-alert-message">Configure your broker and LLM provider to start trading.</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toggleSettingsPanel()">Open Settings</button>
+        </div>
+    </section>
+
+    <!-- Row 2: Positions + Regime -->
+    <section class="grid-3">
+        <!-- Positions Table -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📈 Current Positions</div>
+                <span class="card-badge badge-accent" id="pos-mode-badge">PAPER</span>
+            </div>
+            <div class="card-body scroll-area" id="positions-body">
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    No open positions
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Regime -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🌡️ Market Regime</div>
+            </div>
+            <div class="card-body">
+                <div class="regime-display" id="regime-display">
+                    <div class="regime-icon range">📊</div>
+                    <div>
+                        <div class="regime-name" id="regime-name">Range Bound</div>
+                        <div class="regime-desc" id="regime-desc">Market is trading within a defined range</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+                    <div class="card-title" style="margin-bottom:1rem; font-size:0.9rem;">🛡️ Risk Controls</div>
+                    <table class="data-table risk-table" style="font-size:0.8rem; width: 100%;">
+                        <tbody id="risk-controls-body">
+                            <tr><td>Max Loss/Day</td><td id="risk-maxloss">—</td></tr>
+                            <tr><td>Max Order Size</td><td id="risk-maxorder">—</td></tr>
+                            <tr><td>Max Positions</td><td id="risk-maxpos">—</td></tr>
+                            <tr><td>Trading Hours</td><td id="risk-hours">—</td></tr>
+                            <tr><td>Cooldown</td><td id="risk-cooldown">—</td></tr>
+                            <tr><td>Mandatory SL</td><td id="risk-sl">—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Row 3: Active Strategies + Candidate Strategies -->
+    <section class="grid-2">
+        <!-- Active Strategies -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🧠 Active Strategies</div>
+                <button class="btn btn-primary" onclick="loadStrategies()">Load All</button>
+            </div>
+            <div class="card-body scroll-area" id="strategies-body">
+                <div class="empty-state">
+                    <div class="icon">🔌</div>
+                    No strategies loaded.
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidate Strategies (GitHub) -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🔍 Discovered Strategies</div>
+                <button class="btn btn-outline" onclick="searchStrategies()">Search GitHub</button>
+            </div>
+            <div class="card-body scroll-area" id="candidates-body">
+                <div class="empty-state">
+                    <div class="icon">🌐</div>
+                    Discover new strategies from GitHub
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Row 4: Recent Orders -->
+    <section>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📋 Recent Orders</div>
+                <span id="last-refresh" style="font-size: 0.75rem; color: var(--text-muted);">Never updated</span>
+            </div>
+            <div class="card-body scroll-area" id="orders-body">
+                <div class="empty-state">
+                    <div class="icon">📃</div>
+                    No orders processed yet
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Toast Notification -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="/static/js/app.js"></script>
+</body>
+</html>

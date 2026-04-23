@@ -1,0 +1,47 @@
+# Core
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+
+# Database
+sqlalchemy
+aiosqlite
+alembic
+
+# Broker - Dhan
+dhanhq
+httpx
+
+# LLM Providers
+openai
+anthropic
+google-generativeai
+ollama
+
+# Data & Analysis
+pandas
+numpy
+ta
+
+# Web Dashboard
+jinja2
+aiofiles
+
+# GitHub Discovery
+PyGithub
+
+# Security
+python-jose[cryptography]
+
+# Testing
+pytest
+pytest-asyncio
+pytest-httpx
+
+# Utilities
+pyyaml
+loguru
+tenacity
+pyinstaller

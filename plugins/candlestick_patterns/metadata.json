@@ -1,0 +1,8 @@
+{
+  "name": "Candlestick Patterns",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Trading based on key candlestick patterns like Hammer, Engulfing, and Shooting Star.",
+  "status": "approved",
+  "tags": ["price-action", "candlesticks", "reversal"]
+}

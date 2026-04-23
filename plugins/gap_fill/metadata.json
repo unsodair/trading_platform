@@ -1,0 +1,8 @@
+{
+  "name": "Gap Fill Strategy",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Trading gap fills from previous day close.",
+  "status": "approved",
+  "tags": ["gaps", "mean-reversion", "price-action"]
+}

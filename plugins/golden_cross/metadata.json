@@ -1,0 +1,8 @@
+{
+  "name": "Golden Cross",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Long-term trend reversal strategy using 50 and 200 EMA crossover.",
+  "status": "approved",
+  "tags": ["trend", "ema", "golden-cross"]
+}

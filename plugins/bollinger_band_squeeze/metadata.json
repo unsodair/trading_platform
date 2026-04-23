@@ -1,0 +1,8 @@
+{
+  "name": "Bollinger Band Squeeze",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Volatility breakout strategy using Bollinger Band squeeze.",
+  "status": "approved",
+  "tags": ["volatility", "bollinger-bands", "breakout"]
+}

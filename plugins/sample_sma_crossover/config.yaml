@@ -1,0 +1,18 @@
+# SMA Crossover Strategy Configuration
+enabled: true
+symbols:
+  - RELIANCE
+  - TCS
+  - INFY
+  - HDFCBANK
+  - ICICIBANK
+
+parameters:
+  sma_short: 20
+  sma_long: 50
+  min_confidence: 0.6
+  position_size_pct: 5.0   # % of available capital per trade
+
+risk_overrides:
+  max_loss_per_trade: 1000
+  trailing_stop_pct: 1.5

@@ -1,0 +1,7 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  lookback_period: 20
+  volume_factor: 1.5
+  min_confidence: 0.6
+  rr_ratio: 4.0

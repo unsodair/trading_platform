@@ -1,0 +1,6 @@
+enabled: true
+symbols: ["NSE_EQ|INE002A01018"]
+parameters:
+  pivot_type: "standard"
+  min_confidence: 0.6
+  rr_ratio: 3.0

@@ -1,0 +1,8 @@
+{
+  "name": "VWAP+EMA9 Scalper",
+  "version": "1.0.0",
+  "author": "Antigravity",
+  "description": "Option buying scalping strategy using VWAP and EMA 9.",
+  "status": "approved",
+  "tags": ["options", "scalping", "vwap", "ema"]
+}
