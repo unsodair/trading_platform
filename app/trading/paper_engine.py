@@ -6,7 +6,7 @@ Stores all trades in the paper_trades / paper_positions tables.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from loguru import logger
@@ -50,7 +50,7 @@ class PaperTradingEngine:
         # Record the trade
         trade = PaperTrade(
             order_id=order_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             trading_symbol=order.trading_symbol,
             exchange=order.exchange_segment.value,
             side=order.order_side.value,
@@ -60,12 +60,14 @@ class PaperTradingEngine:
             price=fill_price,
             trigger_price=order.trigger_price,
             status="FILLED",
+            pnl=0.0,
             strategy=order.tag,
         )
         db.add(trade)
 
-        # Update paper position
-        await self._update_position(order, fill_price, db)
+        # Update paper position and calculate realized PnL
+        pnl = await self._update_position(order, fill_price, db)
+        trade.pnl = pnl
         await db.commit()
 
         logger.info(
@@ -132,7 +134,7 @@ class PaperTradingEngine:
 
     async def get_daily_pnl(self, db: AsyncSession) -> float:
         """Compute today's realized P&L from paper trades."""
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         result = await db.execute(
             select(PaperTrade).where(
                 PaperTrade.timestamp >= datetime.strptime(today, "%Y-%m-%d")
@@ -152,8 +154,8 @@ class PaperTradingEngine:
 
     async def _update_position(
         self, order: OrderRequest, fill_price: float, db: AsyncSession
-    ) -> None:
-        """Update or create a paper position based on the filled order."""
+    ) -> float:
+        """Update or create a paper position based on the filled order. Returns realized PnL."""
         result = await db.execute(
             select(PaperPosition).where(
                 PaperPosition.trading_symbol == order.trading_symbol
@@ -162,6 +164,7 @@ class PaperTradingEngine:
         pos = result.scalar_one_or_none()
 
         qty_delta = order.quantity if order.order_side.value == "BUY" else -order.quantity
+        realized_pnl = 0.0
 
         if pos is None:
             pos = PaperPosition(
@@ -174,6 +177,14 @@ class PaperTradingEngine:
             )
             db.add(pos)
         else:
+            # Calculate realized PnL if we are closing or reducing a position
+            if pos.quantity > 0 and order.order_side.value == "SELL":
+                closed_qty = min(pos.quantity, order.quantity)
+                realized_pnl = closed_qty * (fill_price - pos.avg_price)
+            elif pos.quantity < 0 and order.order_side.value == "BUY":
+                closed_qty = min(abs(pos.quantity), order.quantity)
+                realized_pnl = closed_qty * (pos.avg_price - fill_price)
+
             old_value = pos.quantity * pos.avg_price
             new_value = qty_delta * fill_price
             new_qty = pos.quantity + qty_delta
@@ -183,12 +194,16 @@ class PaperTradingEngine:
                     # Adding to position — weighted average
                     pos.avg_price = (old_value + new_value) / new_qty
                 pos.quantity = new_qty
+                pos.side = "BUY" if new_qty > 0 else "SELL"
             else:
                 # Position closed
                 pos.quantity = 0
                 pos.avg_price = 0.0
+                pos.side = "BUY"
 
-            pos.updated_at = datetime.utcnow()
+            pos.updated_at = datetime.now(timezone.utc)
+
+        return realized_pnl
 
     # ── Reset ──────────────────────────────────────────────────────────────
 

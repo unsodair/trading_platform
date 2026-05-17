@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from pathlib import Path
+import sys
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -39,6 +40,12 @@ async def lifespan(app: FastAPI):
     # ── Shutdown ───────────────────────────────────────────────────
     logger.info("👋 Shutting down Trading Platform")
 
+    # Gracefully close Dhan broker HTTP client session
+    from app.brokers import dhan_adapter
+    if dhan_adapter._dhan_instance is not None:
+        await dhan_adapter._dhan_instance.close()
+        logger.info("✅ Dhan broker adapter client closed")
+
 
 # ── Create application ────────────────────────────────────────────────────────
 
@@ -60,6 +67,7 @@ from app.api.routes_trading import router as trading_router
 from app.api.routes_discovery import router as discovery_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_settings import router as settings_router
+from app.api.routes_emergency import router as emergency_router
 
 app.include_router(broker_router)
 app.include_router(strategy_router)
@@ -67,6 +75,7 @@ app.include_router(trading_router)
 app.include_router(discovery_router)
 app.include_router(dashboard_router)
 app.include_router(settings_router)
+app.include_router(emergency_router)
 
 # ── Static files for dashboard ─────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@ order request, broker response, risk-check result, and trading mode.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from loguru import logger
@@ -38,7 +38,7 @@ class AuditLogger:
         Returns the audit log ID, or None if no db session provided.
         """
         entry = AuditLog(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             raw_llm_output=raw_llm_output,
             parsed_decision=parsed_decision or {},
             strategy_used=strategy_used,

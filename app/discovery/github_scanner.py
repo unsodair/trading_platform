@@ -9,7 +9,7 @@ markets, and stores them as CANDIDATE only.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from github import Github, GithubException
@@ -183,7 +183,7 @@ class GitHubStrategyScanner:
                         relevance_score=round(score, 3),
                         indian_market_compatible=indian_compatible,
                         status=StrategyStatus.CANDIDATE,
-                        discovered_at=datetime.utcnow(),
+                        discovered_at=datetime.now(timezone.utc),
                     )
                 )
         except GithubException as exc:

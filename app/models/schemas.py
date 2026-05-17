@@ -5,7 +5,7 @@ Every LLM decision, broker interaction, and API payload is modeled here.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -68,6 +68,11 @@ class StrategyStatus(str, Enum):
     APPROVED = "approved"
     ACTIVE = "active"
     DISABLED = "disabled"
+    # Deployment lifecycle stages
+    SANDBOX = "sandbox"
+    PAPER_APPROVED = "paper_approved"
+    LIMITED_LIVE = "limited_live"
+    PRODUCTION = "production"
 
 
 # ─── Broker Schemas ────────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ class BrokerStatus(BaseModel):
     connected: bool
     broker_name: str = "Dhan"
     client_id: str = ""
-    last_checked: datetime = Field(default_factory=datetime.utcnow)
+    last_checked: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Holding(BaseModel):
@@ -191,6 +196,12 @@ class LLMQuery(BaseModel):
 
 # ─── Strategy Schemas ──────────────────────────────────────────────────────────
 
+class StrategyRiskProfile(str, Enum):
+    CONSERVATIVE = "conservative"
+    MODERATE = "moderate"
+    AGGRESSIVE = "aggressive"
+
+
 class StrategyMetadata(BaseModel):
     name: str
     version: str = "1.0.0"
@@ -200,6 +211,12 @@ class StrategyMetadata(BaseModel):
     supported_exchanges: list[str] = Field(default_factory=lambda: ["NSE_EQ"])
     timeframe: str = "1d"
     status: StrategyStatus = StrategyStatus.CANDIDATE
+    # Deployment control fields
+    risk_profile: str = StrategyRiskProfile.MODERATE
+    capital_limit: float = 100_000.0  # Max capital this strategy can deploy (₹)
+    max_daily_loss: float = 5_000.0   # Strategy-level daily loss cutoff (₹)
+    deployment_status: str = "sandbox"  # sandbox | paper_approved | limited_live | production | disabled
+    approved_by: str = ""              # Human approver identifier
 
 
 class StrategyConfig(BaseModel):
@@ -215,7 +232,7 @@ class StrategySignal(BaseModel):
     action: str  # BUY | SELL | HOLD
     confidence: float = 0.0
     metadata: dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ─── Discovery Schemas ─────────────────────────────────────────────────────────
@@ -230,7 +247,7 @@ class CandidateStrategy(BaseModel):
     relevance_score: float = 0.0
     indian_market_compatible: bool = False
     status: StrategyStatus = StrategyStatus.CANDIDATE
-    discovered_at: datetime = Field(default_factory=datetime.utcnow)
+    discovered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     review_notes: str = ""
 
 
@@ -245,7 +262,7 @@ class RiskCheckResult(BaseModel):
 # ─── Audit Schemas ─────────────────────────────────────────────────────────────
 
 class AuditEntry(BaseModel):
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     raw_llm_output: str = ""
     parsed_decision: dict[str, Any] = Field(default_factory=dict)
     strategy_used: str = ""

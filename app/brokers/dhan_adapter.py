@@ -6,7 +6,7 @@ Implements the full BaseBroker contract.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -86,6 +86,10 @@ class DhanAdapter(BaseBroker):
             self._client = dhanhq(settings.dhan_client_id, settings.dhan_access_token)
         return self._client
 
+    async def close(self) -> None:
+        """Close HTTP client session gracefully."""
+        await self._http.aclose()
+
     # ── Connection ─────────────────────────────────────────────────────────
 
     async def connect(self) -> BrokerStatus:
@@ -96,7 +100,7 @@ class DhanAdapter(BaseBroker):
             return BrokerStatus(
                 connected=connected,
                 client_id=settings.dhan_client_id,
-                last_checked=datetime.utcnow(),
+                last_checked=datetime.now(timezone.utc),
             )
         except Exception as exc:
             logger.error(f"Dhan connection failed: {exc}")
@@ -194,7 +198,7 @@ class DhanAdapter(BaseBroker):
                     trigger_price=o.get("triggerPrice", 0.0),
                     status=o.get("orderStatus", "UNKNOWN"),
                     filled_qty=o.get("filledQty", 0),
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                 )
                 for o in data
             ]

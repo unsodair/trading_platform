@@ -22,6 +22,7 @@ from app.models.schemas import (
 from app.trading.live_engine import LiveTradingEngine
 from app.trading.paper_engine import get_paper_engine
 from app.trading.risk_manager import get_risk_manager
+from app.trading.kill_switch import get_kill_switch
 
 router = APIRouter(prefix="/api/trading", tags=["Trading"])
 
@@ -51,13 +52,35 @@ async def execute_order(
 ):
     """
     Execute an order — routes to paper or live engine based on current mode.
+    Kill switch is checked FIRST, before any risk checks or execution.
     """
+    # ── Gate 0: Kill Switch (highest priority) ─────────────────────
+    ks = get_kill_switch()
+    allowed, ks_reason = ks.is_order_allowed(
+        symbol=order.trading_symbol,
+        strategy_name=strategy_name,
+    )
+    if not allowed:
+        return OrderResponse(
+            status=OrderStatus.REJECTED,
+            message=f"Kill switch: {ks_reason}",
+        )
+
     risk_mgr = get_risk_manager()
 
     if settings.trading_mode == TradingMode.PAPER:
         # Paper trading — risk check then simulate
         positions = await get_paper_engine().get_positions(db)
         daily_pnl = await get_paper_engine().get_daily_pnl(db)
+
+        # Auto-trigger kill switch on drawdown breach
+        ks.check_drawdown(daily_pnl)
+        if ks._global_halt:
+            return OrderResponse(
+                status=OrderStatus.REJECTED,
+                message="Kill switch auto-triggered: drawdown breach",
+            )
+
         risk_result = risk_mgr.check(order, positions, daily_pnl)
 
         if not risk_result.passed:
@@ -67,6 +90,12 @@ async def execute_order(
             )
 
         response = await get_paper_engine().place_order(order, db)
+
+        # Track success/failure for auto-trigger
+        if response.status == OrderStatus.REJECTED:
+            ks.record_failure()
+        else:
+            ks.record_success()
 
         # Audit
         await get_audit_logger().log(

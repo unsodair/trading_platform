@@ -5,7 +5,10 @@ paper trades, and discovered strategies.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 from sqlalchemy import (
     JSON,
@@ -27,7 +30,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    timestamp = Column(DateTime, default=utcnow, index=True)
     raw_llm_output = Column(Text, default="")
     parsed_decision = Column(JSON, default=dict)
     strategy_used = Column(String(128), default="", index=True)
@@ -46,7 +49,7 @@ class PaperTrade(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(String(64), unique=True, index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=utcnow)
     trading_symbol = Column(String(64), index=True)
     exchange = Column(String(16))
     side = Column(String(8))
@@ -72,8 +75,8 @@ class PaperPosition(Base):
     avg_price = Column(Float, default=0.0)
     side = Column(String(8), default="BUY")
     strategy = Column(String(128), default="")
-    opened_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    opened_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
 
 class DiscoveredStrategy(Base):
@@ -91,7 +94,7 @@ class DiscoveredStrategy(Base):
     relevance_score = Column(Float, default=0.0)
     indian_market_compatible = Column(Boolean, default=False)
     status = Column(String(32), default="candidate")
-    discovered_at = Column(DateTime, default=datetime.utcnow)
+    discovered_at = Column(DateTime, default=utcnow)
     review_notes = Column(Text, default="")
     extracted_metadata = Column(JSON, default=dict)
 
@@ -107,4 +110,4 @@ class DailyPnL(Base):
     unrealized_pnl = Column(Float, default=0.0)
     total_trades = Column(Integer, default=0)
     trading_mode = Column(String(16), default="paper")
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

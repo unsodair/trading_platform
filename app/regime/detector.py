@@ -73,21 +73,16 @@ class MarketRegimeDetector:
             return MarketRegime.RANGE_BOUND
 
         try:
-            close = df["close"].astype(float)
-            high = df["high"].astype(float)
-            low = df["low"].astype(float)
+            indicators = self.get_indicators(df)
+            if not indicators:
+                return MarketRegime.RANGE_BOUND
 
-            # ── Indicators ─────────────────────────────────────────────
-            sma_s = close.rolling(self.sma_short).mean()
-            sma_l = close.rolling(self.sma_long).mean()
-
-            adx_val = self._compute_adx(high, low, close)
-            bb_width = self._compute_bb_width(close)
-            atr_ratio = self._compute_atr_ratio(high, low, close)
-
-            latest_close = close.iloc[-1]
-            latest_sma_s = sma_s.iloc[-1]
-            latest_sma_l = sma_l.iloc[-1]
+            latest_close = indicators["latest_close"]
+            latest_sma_s = indicators[f"sma_{self.sma_short}"]
+            latest_sma_l = indicators[f"sma_{self.sma_long}"]
+            adx_val = indicators["adx"]
+            bb_width = indicators["bb_width"]
+            atr_ratio = indicators["atr_ratio"]
 
             # ── Classification logic ───────────────────────────────────
             # 1) High volatility — ATR spike
@@ -173,8 +168,8 @@ class MarketRegimeDetector:
             high = df["high"].astype(float)
             low = df["low"].astype(float)
             return {
-                "sma_20": float(close.rolling(20).mean().iloc[-1]),
-                "sma_50": float(close.rolling(50).mean().iloc[-1]),
+                f"sma_{self.sma_short}": float(close.rolling(self.sma_short).mean().iloc[-1]),
+                f"sma_{self.sma_long}": float(close.rolling(self.sma_long).mean().iloc[-1]),
                 "adx": self._compute_adx(high, low, close),
                 "bb_width": self._compute_bb_width(close),
                 "atr_ratio": self._compute_atr_ratio(high, low, close),
