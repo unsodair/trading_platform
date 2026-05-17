@@ -15,5 +15,5 @@ services:
       - ./.env:/app/.env
     restart: always
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///app/data/trading_platform.db
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/trading_platform.db
       # You can override other settings here if needed
