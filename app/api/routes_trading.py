@@ -52,7 +52,7 @@ async def get_active_market():
 @router.post("/market/{market}")
 async def set_active_market(market: str):
     """Switch active market (runtime only)."""
-    valid_markets = ["NSE_EQ", "CRYPTO", "US_EQ"]
+    valid_markets = ["NSE_EQ", "CRYPTO", "US_EQ", "GLOBAL_EQ"]
     if market in valid_markets:
         settings.active_market = market
         return {"market": settings.active_market, "message": f"Switched to {market} market"}

@@ -40,6 +40,7 @@ class ExchangeSegment(str, Enum):
     MCX_COMM = "MCX_COMM"
     CRYPTO = "CRYPTO"
     US_EQ = "US_EQ"
+    GLOBAL_EQ = "GLOBAL_EQ"
 
 
 class OrderStatus(str, Enum):

@@ -45,7 +45,18 @@ class PaperTradingEngine:
     ) -> OrderResponse:
         """Simulate placing an order. Immediately 'fills' at execution price."""
         order_id = f"PAPER-{uuid.uuid4().hex[:12].upper()}"
-        fill_price = self._apply_slippage(order.price, order.order_side.value)
+        # Simulating execution price resolving
+        price = order.price
+        if price <= 0:
+            try:
+                from app.brokers.factory import get_broker
+                broker = get_broker()
+                price = await broker.get_ltp(order.trading_symbol, order.exchange_segment.value)
+            except Exception as e:
+                logger.error(f"Paper engine failed to fetch LTP for {order.trading_symbol}: {e}")
+                price = 100.0
+
+        fill_price = self._apply_slippage(price, order.order_side.value)
 
         # Record the trade
         trade = PaperTrade(

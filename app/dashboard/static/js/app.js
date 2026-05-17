@@ -38,6 +38,7 @@ async function refreshDashboard() {
         renderStrategies(state.active_strategies);
         renderCandidates(state.candidate_strategies);
         renderOrders(state.recent_orders);
+        fetchWatchlist(state.active_market);
     }
 
     if (risk) renderRiskControls(risk);
@@ -101,7 +102,11 @@ function renderMode(mode, market) {
     if (market) {
         if (market === 'CRYPTO') badgeText += ' (CRYPTO)';
         else if (market === 'US_EQ') badgeText += ' (US)';
+        else if (market === 'GLOBAL_EQ') badgeText += ' (GLOBAL)';
         else badgeText += ' (IN)';
+        
+        const wlBadge = document.getElementById('watchlist-market-badge');
+        if (wlBadge) wlBadge.textContent = market;
         
         const marketSelector = document.getElementById('market-selector');
         if (marketSelector) {
@@ -626,6 +631,113 @@ document.addEventListener('keydown', (e) => {
         if (panel && panel.classList.contains('open')) toggleSettingsPanel();
     }
 });
+
+// ── Watchlist & Quick Trade ──────────────────────────────────
+async function fetchWatchlist(market) {
+    const wlBody = document.getElementById('watchlist-body');
+    if (!wlBody) return;
+    
+    const data = await fetchJSON(`/api/broker/watchlist?market=${market}`);
+    if (!data || !data.watchlist || data.watchlist.length === 0) {
+        wlBody.innerHTML = '<div class="empty-state"><div class="icon">📭</div>No watchlist items</div>';
+        return;
+    }
+    
+    let html = `<div class="data-table-container"><table class="data-table">
+        <thead><tr><th>Symbol</th><th>Name</th><th style="text-align:right">LTP</th></tr></thead><tbody>`;
+    for (const item of data.watchlist) {
+        const symbolText = item.symbol;
+        const priceText = item.ltp > 0 ? `₹${item.ltp.toLocaleString('en-IN', {minimumFractionDigits:2})}` : 'Loading...';
+        html += `<tr style="cursor: pointer;" onclick="selectWatchlistSymbol('${item.symbol}')">
+            <td style="color:var(--cyan);font-weight:700">${symbolText}</td>
+            <td style="font-size:0.8rem;color:var(--text-secondary)">${item.name}</td>
+            <td style="font-weight:700;text-align:right;color:var(--text-primary)">${priceText}</td>
+        </tr>`;
+    }
+    html += '</tbody></table></div>';
+    wlBody.innerHTML = html;
+}
+
+function selectWatchlistSymbol(symbol) {
+    const tradeSymbolEl = document.getElementById('trade-symbol');
+    if (tradeSymbolEl) {
+        tradeSymbolEl.value = symbol;
+        showToast(`Selected ${symbol} for trading`, 'info');
+    }
+}
+
+async function placeQuickOrder(side) {
+    const symbolEl = document.getElementById('trade-symbol');
+    const qtyEl = document.getElementById('trade-qty');
+    const priceEl = document.getElementById('trade-price');
+    const feedbackEl = document.getElementById('quick-trade-feedback');
+    
+    if (!symbolEl || !qtyEl || !feedbackEl) return;
+    
+    const symbol = symbolEl.value.trim().toUpperCase();
+    const qty = parseFloat(qtyEl.value);
+    const price = priceEl && priceEl.value ? parseFloat(priceEl.value) : 0.0;
+    
+    if (!symbol) {
+        showFeedbackQuickTrade('error', 'Please enter a valid symbol.');
+        return;
+    }
+    if (isNaN(qty) || qty <= 0) {
+        showFeedbackQuickTrade('error', 'Please enter a valid quantity.');
+        return;
+    }
+    
+    showFeedbackQuickTrade('loading', `Executing ${side} order for ${symbol}...`);
+    
+    // Determine active segment
+    let segment = "NSE_EQ";
+    if (currentState && currentState.active_market) {
+        segment = currentState.active_market;
+    }
+    
+    const orderRequest = {
+        trading_symbol: symbol,
+        exchange_segment: segment,
+        security_id: symbol,
+        order_side: side,
+        order_type: price > 0 ? "LIMIT" : "MARKET",
+        product_type: "DELIVERY",
+        quantity: qty,
+        price: price,
+        trigger_price: 0.0,
+        tag: "quick_trade"
+    };
+    
+    const resp = await fetchJSON('/api/trading/order', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(orderRequest)
+    });
+    
+    if (resp && resp.status === 'FILLED') {
+        showFeedbackQuickTrade('success', `✅ Order FILLED! ID: ${resp.order_id}`);
+        showToast(`${side} order for ${symbol} filled!`, 'success');
+        refreshDashboard();
+    } else if (resp && resp.status === 'REJECTED') {
+        showFeedbackQuickTrade('error', `❌ Rejected: ${resp.message}`);
+        showToast(`Order rejected: ${resp.message}`, 'error');
+    } else if (resp) {
+        showFeedbackQuickTrade('success', `✅ Order placed: ${resp.status}`);
+        refreshDashboard();
+    } else {
+        showFeedbackQuickTrade('error', '❌ Failed to place order.');
+    }
+}
+
+function showFeedbackQuickTrade(type, message) {
+    const el = document.getElementById('quick-trade-feedback');
+    if (!el) return;
+    el.className = `form-feedback ${type}`;
+    el.textContent = message;
+    if (type !== 'loading') {
+        setTimeout(() => { el.className = 'form-feedback'; el.textContent = ''; }, 6000);
+    }
+}
 
 // ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

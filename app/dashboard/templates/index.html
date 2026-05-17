@@ -43,6 +43,7 @@
                     <option value="NSE_EQ">🇮🇳 Indian Stocks</option>
                     <option value="CRYPTO">🪙 Crypto</option>
                     <option value="US_EQ">🇺🇸 US Stocks</option>
+                    <option value="GLOBAL_EQ">🌐 Global Stocks</option>
                 </select>
             </div>
             <button class="btn btn-settings" id="settings-toggle-btn" onclick="toggleSettingsPanel()">
@@ -382,48 +383,96 @@
         </div>
     </section>
 
-    <!-- Row 2: Positions + Regime -->
+    <!-- Row 2: Positions, Watchlist, Quick Trade & Regime -->
     <section class="grid-3">
-        <!-- Positions Table -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">📈 Current Positions</div>
-                <span class="card-badge badge-accent" id="pos-mode-badge">PAPER</span>
+        <!-- Column 1: Positions & Watchlist -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Positions Table -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📈 Current Positions</div>
+                    <span class="card-badge badge-accent" id="pos-mode-badge">PAPER</span>
+                </div>
+                <div class="card-body scroll-area" id="positions-body">
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        No open positions
+                    </div>
+                </div>
             </div>
-            <div class="card-body scroll-area" id="positions-body">
-                <div class="empty-state">
-                    <div class="icon">📭</div>
-                    No open positions
+
+            <!-- Market Watch -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">👁️ Market Watch</div>
+                    <span class="card-badge badge-accent" id="watchlist-market-badge">NSE_EQ</span>
+                </div>
+                <div class="card-body scroll-area" id="watchlist-body" style="max-height: 320px;">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        Loading watchlist…
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Market Regime -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">🌡️ Market Regime</div>
-            </div>
-            <div class="card-body">
-                <div class="regime-display" id="regime-display">
-                    <div class="regime-icon range">📊</div>
-                    <div>
-                        <div class="regime-name" id="regime-name">Range Bound</div>
-                        <div class="regime-desc" id="regime-desc">Market is trading within a defined range</div>
-                    </div>
+        <!-- Column 2: Quick Trade & Regime -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Quick Trade Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⚡ Quick Trade</div>
                 </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="trade-symbol">Symbol</label>
+                        <input type="text" id="trade-symbol" placeholder="e.g. BTC/USDT, AAPL, RELIANCE" autocomplete="off" spellcheck="false" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trade-qty">Quantity</label>
+                            <input type="number" id="trade-qty" value="1" min="1" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="trade-price">Limit Price (Optional)</label>
+                            <input type="number" id="trade-price" placeholder="Market Order" min="0" step="any">
+                        </div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <button class="btn btn-primary" onclick="placeQuickOrder('BUY')" style="background: var(--green); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); justify-content: center; font-weight: 800;">🟢 BUY</button>
+                        <button class="btn btn-primary" onclick="placeQuickOrder('SELL')" style="background: var(--red); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25); justify-content: center; font-weight: 800;">🔴 SELL</button>
+                    </div>
+                    <div class="form-feedback" id="quick-trade-feedback" style="margin-top: 0.75rem; font-size: 0.8rem;"></div>
+                </div>
+            </div>
 
-                <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border);">
-                    <div class="card-title" style="margin-bottom:1rem; font-size:0.9rem;">🛡️ Risk Controls</div>
-                    <table class="data-table risk-table" style="font-size:0.8rem; width: 100%;">
-                        <tbody id="risk-controls-body">
-                            <tr><td>Max Loss/Day</td><td id="risk-maxloss">—</td></tr>
-                            <tr><td>Max Order Size</td><td id="risk-maxorder">—</td></tr>
-                            <tr><td>Max Positions</td><td id="risk-maxpos">—</td></tr>
-                            <tr><td>Trading Hours</td><td id="risk-hours">—</td></tr>
-                            <tr><td>Cooldown</td><td id="risk-cooldown">—</td></tr>
-                            <tr><td>Mandatory SL</td><td id="risk-sl">—</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Market Regime -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🌡️ Market Regime</div>
+                </div>
+                <div class="card-body">
+                    <div class="regime-display" id="regime-display">
+                        <div class="regime-icon range">📊</div>
+                        <div>
+                            <div class="regime-name" id="regime-name">Range Bound</div>
+                            <div class="regime-desc" id="regime-desc">Market is trading within a defined range</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+                        <div class="card-title" style="margin-bottom:1rem; font-size:0.9rem;">🛡️ Risk Controls</div>
+                        <table class="data-table risk-table" style="font-size:0.8rem; width: 100%;">
+                            <tbody id="risk-controls-body">
+                                <tr><td>Max Loss/Day</td><td id="risk-maxloss">—</td></tr>
+                                <tr><td>Max Order Size</td><td id="risk-maxorder">—</td></tr>
+                                <tr><td>Max Positions</td><td id="risk-maxpos">—</td></tr>
+                                <tr><td>Trading Hours</td><td id="risk-hours">—</td></tr>
+                                <tr><td>Cooldown</td><td id="risk-cooldown">—</td></tr>
+                                <tr><td>Mandatory SL</td><td id="risk-sl">—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

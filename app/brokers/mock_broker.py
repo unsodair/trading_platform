@@ -85,25 +85,18 @@ class MockBroker(BaseBroker):
                 ticker = await loop.run_in_executor(None, exchange.fetch_ticker, security_id.upper())
                 return float(ticker['last'])
             
-            elif exchange_segment == "US_EQ":
-                import yfinance as yf
-                # Example: security_id="AAPL"
-                loop = asyncio.get_event_loop()
-                ticker = yf.Ticker(security_id.upper())
-                # Use fast_info to get the last price quickly
-                info = await loop.run_in_executor(None, getattr, ticker, 'fast_info')
-                return float(info.last_price)
+            # For all stock markets globally (US, India, UK, Germany, Japan, etc.)
+            import yfinance as yf
+            symbol = security_id.upper()
             
-            else:
-                # For Indian Stocks (NSE/BSE), we can also use yfinance (e.g. RELIANCE.NS)
-                import yfinance as yf
-                symbol = security_id.upper()
-                if not symbol.endswith(".NS") and not symbol.endswith(".BO"):
-                    symbol = f"{symbol}.NS"
-                loop = asyncio.get_event_loop()
-                ticker = yf.Ticker(symbol)
-                info = await loop.run_in_executor(None, getattr, ticker, 'fast_info')
-                return float(info.last_price)
+            # Auto-suffix Indian stocks with NSE (.NS) if no specific exchange suffix is provided
+            if exchange_segment in ["NSE_EQ", "BSE_EQ"] and "." not in symbol:
+                symbol = f"{symbol}.NS"
+            
+            loop = asyncio.get_event_loop()
+            ticker = yf.Ticker(symbol)
+            info = await loop.run_in_executor(None, getattr, ticker, 'fast_info')
+            return float(info.last_price)
                 
         except Exception as exc:
             logger.error(f"MockBroker LTP fetch failed for {security_id}: {exc}")
