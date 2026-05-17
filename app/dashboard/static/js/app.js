@@ -155,7 +155,13 @@ function renderStrategies(strategies) {
             <div class="strategy-tags">
                 ${(s.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}
                 <span class="tag">${s.timeframe || '1d'}</span>
-            </div></div><span class="card-badge ${statusCls}">${s.status}</span></div>`;
+            </div>
+            <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center;">
+                <button class="btn btn-outline" style="padding: 3px 8px; font-size: 0.65rem;" onclick="updateStrategyStocks('${s.name}', 'gainers')">📈 Top Gainers</button>
+                <button class="btn btn-outline" style="padding: 3px 8px; font-size: 0.65rem;" onclick="updateStrategyStocks('${s.name}', 'losers')">📉 Top Losers</button>
+                <button class="btn btn-outline" style="padding: 3px 8px; font-size: 0.65rem;" onclick="updateStrategyStocks('${s.name}', 'custom')">✏️ Custom</button>
+            </div>
+            </div><span class="card-badge ${statusCls}">${s.status}</span></div>`;
     }
     html += '</div>';
     body.innerHTML = html;
@@ -236,6 +242,33 @@ async function searchStrategies() {
         method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({})
     });
     await refreshDashboard();
+}
+
+
+async function updateStrategyStocks(pluginName, type) {
+    let payload = {};
+    if (type === 'gainers' || type === 'losers') {
+        payload.scan_market = type;
+        payload.scan_count = 5;
+        showToast(`Fetching Top ${type} from NSE...`);
+    } else if (type === 'custom') {
+        const symbols = prompt("Enter stock symbols separated by commas (e.g. RELIANCE, TCS, INFY):");
+        if (!symbols) return;
+        payload.symbols = symbols.split(',').map(s => s.trim().toUpperCase());
+    }
+    
+    const resp = await fetchJSON(`/api/strategies/${pluginName}/symbols`, {
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    
+    if (resp && resp.status === 'success') {
+        showToast(resp.message, 'success');
+        refreshDashboard();
+    } else {
+        showToast(resp?.message || 'Failed to update stocks', 'error');
+    }
 }
 
 

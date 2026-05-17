@@ -68,6 +68,7 @@ from app.api.routes_discovery import router as discovery_router
 from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_settings import router as settings_router
 from app.api.routes_emergency import router as emergency_router
+from app.api.routes_scanner import router as scanner_router
 
 app.include_router(broker_router)
 app.include_router(strategy_router)
@@ -76,6 +77,7 @@ app.include_router(discovery_router)
 app.include_router(dashboard_router)
 app.include_router(settings_router)
 app.include_router(emergency_router)
+app.include_router(scanner_router)
 
 # ── Static files for dashboard ─────────────────────────────────────────────────
 
