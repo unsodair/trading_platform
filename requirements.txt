@@ -24,6 +24,8 @@ ollama
 pandas
 numpy
 ta
+ccxt
+yfinance
 
 # Web Dashboard
 jinja2

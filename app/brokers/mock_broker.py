@@ -5,8 +5,10 @@ Mock broker adapter — used for paper trading when no broker credentials are pr
 from __future__ import annotations
 
 import uuid
+import asyncio
 from datetime import datetime, timezone
 from typing import Any
+from loguru import logger
 
 from app.brokers.base import BaseBroker
 from app.models.schemas import (
@@ -72,11 +74,44 @@ class MockBroker(BaseBroker):
         )
 
     async def get_ltp(self, security_id: str, exchange_segment: str) -> float:
-        # Provide a dummy price for paper trading
-        return 100.0
+        """Fetch live price using public APIs based on the exchange segment."""
+        try:
+            if exchange_segment == "CRYPTO":
+                import ccxt
+                # Example: security_id="BTC/USDT"
+                # Using binance as a generic source for crypto prices
+                exchange = ccxt.binance()
+                loop = asyncio.get_event_loop()
+                ticker = await loop.run_in_executor(None, exchange.fetch_ticker, security_id.upper())
+                return float(ticker['last'])
+            
+            elif exchange_segment == "US_EQ":
+                import yfinance as yf
+                # Example: security_id="AAPL"
+                loop = asyncio.get_event_loop()
+                ticker = yf.Ticker(security_id.upper())
+                # Use fast_info to get the last price quickly
+                info = await loop.run_in_executor(None, getattr, ticker, 'fast_info')
+                return float(info.last_price)
+            
+            else:
+                # For Indian Stocks (NSE/BSE), we can also use yfinance (e.g. RELIANCE.NS)
+                import yfinance as yf
+                symbol = security_id.upper()
+                if not symbol.endswith(".NS") and not symbol.endswith(".BO"):
+                    symbol = f"{symbol}.NS"
+                loop = asyncio.get_event_loop()
+                ticker = yf.Ticker(symbol)
+                info = await loop.run_in_executor(None, getattr, ticker, 'fast_info')
+                return float(info.last_price)
+                
+        except Exception as exc:
+            logger.error(f"MockBroker LTP fetch failed for {security_id}: {exc}")
+            return 100.0  # Fallback dummy price
 
     async def get_market_data(
         self, security_id: str, exchange_segment: str
     ) -> dict[str, Any]:
-        return {"ltp": 100.0}
+        ltp = await self.get_ltp(security_id, exchange_segment)
+        return {"ltp": ltp}
 

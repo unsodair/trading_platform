@@ -83,6 +83,7 @@ async def dashboard_state(db: AsyncSession = Depends(get_db)):
     return DashboardState(
         broker_status=broker_status,
         trading_mode=TradingMode(settings.trading_mode.value),
+        active_market=settings.active_market,
         market_regime=MarketRegime.RANGE_BOUND,
         positions=positions,
         active_strategies=all_strategies,

@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     # ── Trading Mode ─────────────────────────────────────────────────
     trading_mode: TradingMode = TradingMode.PAPER
+    active_market: str = "NSE_EQ"
 
     # ── Dhan Broker ──────────────────────────────────────────────────
     dhan_client_id: str = ""

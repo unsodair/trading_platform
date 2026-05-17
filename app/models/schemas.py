@@ -38,6 +38,8 @@ class ExchangeSegment(str, Enum):
     NSE_FNO = "NSE_FNO"
     BSE_FNO = "BSE_FNO"
     MCX_COMM = "MCX_COMM"
+    CRYPTO = "CRYPTO"
+    US_EQ = "US_EQ"
 
 
 class OrderStatus(str, Enum):
@@ -279,6 +281,7 @@ class AuditEntry(BaseModel):
 class DashboardState(BaseModel):
     broker_status: BrokerStatus
     trading_mode: TradingMode = TradingMode.PAPER
+    active_market: str = "NSE_EQ"
     market_regime: MarketRegime = MarketRegime.RANGE_BOUND
     positions: list[Position] = Field(default_factory=list)
     holdings: list[Holding] = Field(default_factory=list)

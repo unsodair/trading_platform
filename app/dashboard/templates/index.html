@@ -38,6 +38,13 @@
                 <button class="mode-btn" id="mode-paper" onclick="switchMode('paper')">📝 Paper</button>
                 <button class="mode-btn" id="mode-live" onclick="switchMode('live')">🔴 Live</button>
             </div>
+            <div class="mode-toggle" id="market-selector-container">
+                <select class="mode-btn" id="market-selector" onchange="switchMarket(this.value)" style="appearance: none; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; padding: 0.35rem 0.75rem; font-family: inherit; font-size: 0.8rem; cursor: pointer; outline: none; box-shadow: none;">
+                    <option value="NSE_EQ">🇮🇳 Indian Stocks</option>
+                    <option value="CRYPTO">🪙 Crypto</option>
+                    <option value="US_EQ">🇺🇸 US Stocks</option>
+                </select>
+            </div>
             <button class="btn btn-settings" id="settings-toggle-btn" onclick="toggleSettingsPanel()">
                 ⚙️ Settings
             </button>

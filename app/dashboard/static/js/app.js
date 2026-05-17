@@ -32,7 +32,7 @@ async function refreshDashboard() {
         currentState = state;
         renderStats(state);
         renderBrokerStatus(state.broker_status);
-        renderMode(state.trading_mode);
+        renderMode(state.trading_mode, state.active_market);
         renderPositions(state.positions);
         renderRegime(state.market_regime);
         renderStrategies(state.active_strategies);
@@ -89,14 +89,29 @@ function renderBrokerStatus(bs) {
     }
 }
 
-function renderMode(mode) {
+function renderMode(mode, market) {
     const paper = document.getElementById('mode-paper');
     const live = document.getElementById('mode-live');
     const badge = document.getElementById('pos-mode-badge');
     if (!paper || !live || !badge) return;
     paper.className = mode === 'paper' ? 'mode-btn active-paper' : 'mode-btn';
     live.className = mode === 'live' ? 'mode-btn active-live' : 'mode-btn';
-    badge.textContent = mode.toUpperCase();
+    
+    let badgeText = mode.toUpperCase();
+    if (market) {
+        if (market === 'CRYPTO') badgeText += ' (CRYPTO)';
+        else if (market === 'US_EQ') badgeText += ' (US)';
+        else badgeText += ' (IN)';
+        
+        const marketSelector = document.getElementById('market-selector');
+        if (marketSelector) {
+            marketSelector.value = market;
+            // Disable market selector in live mode for now (only paper supports everything easily without broker change)
+            marketSelector.disabled = mode === 'live';
+        }
+    }
+    
+    badge.textContent = badgeText;
     badge.className = `card-badge ${mode === 'paper' ? 'badge-green' : 'badge-red'}`;
 }
 
@@ -227,6 +242,14 @@ function renderRiskControls(r) {
 // ── Dashboard Actions ────────────────────────────────────────
 async function switchMode(mode) {
     await fetchJSON(`/api/trading/mode/${mode}`, { method: 'POST' });
+    await refreshDashboard();
+}
+
+async function switchMarket(market) {
+    const resp = await fetchJSON(`/api/trading/market/${market}`, { method: 'POST' });
+    if (resp && resp.market) {
+        showToast(`Switched market to ${resp.market}`, 'success');
+    }
     await refreshDashboard();
 }
 

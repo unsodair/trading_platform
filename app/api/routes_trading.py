@@ -43,6 +43,22 @@ async def set_trading_mode(mode: str):
         return {"error": f"Invalid mode '{mode}'. Use 'paper' or 'live'"}
 
 
+@router.get("/market")
+async def get_active_market():
+    """Get current active market."""
+    return {"market": settings.active_market}
+
+
+@router.post("/market/{market}")
+async def set_active_market(market: str):
+    """Switch active market (runtime only)."""
+    valid_markets = ["NSE_EQ", "CRYPTO", "US_EQ"]
+    if market in valid_markets:
+        settings.active_market = market
+        return {"market": settings.active_market, "message": f"Switched to {market} market"}
+    return {"error": f"Invalid market '{market}'. Use {valid_markets}"}
+
+
 @router.post("/order", response_model=OrderResponse)
 async def execute_order(
     order: OrderRequest,
