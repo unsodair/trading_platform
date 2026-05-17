@@ -86,6 +86,8 @@ def _reset_broker_singleton():
     """Force broker adapter to reinitialize with new credentials."""
     from app.brokers import dhan_adapter
     dhan_adapter._dhan_instance = None
+    from app.brokers import factory
+    factory._broker_instance = None
     logger.info("🔄 Broker adapter singleton reset (will reconnect on next use)")
 
 
@@ -131,8 +133,8 @@ async def update_broker_config(req: BrokerConfigRequest):
 async def test_broker_connection():
     """Test broker connectivity with current credentials."""
     _reset_broker_singleton()
-    from app.brokers.dhan_adapter import get_dhan_adapter
-    adapter = get_dhan_adapter()
+    from app.brokers.factory import get_broker
+    adapter = get_broker()
     try:
         status = await adapter.connect()
         return {

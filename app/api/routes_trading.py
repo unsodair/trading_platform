@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit.logger import get_audit_logger
-from app.brokers.dhan_adapter import get_dhan_adapter
+from app.brokers.factory import get_broker
 from app.config import TradingMode, settings
 from app.database import get_db
 from app.models.schemas import (
@@ -112,7 +112,7 @@ async def execute_order(
 
     else:
         # Live trading
-        broker = get_dhan_adapter()
+        broker = get_broker()
         live_engine = LiveTradingEngine(broker)
         positions = await broker.get_positions()
         return await live_engine.execute_order(
@@ -131,7 +131,7 @@ async def get_positions(db: AsyncSession = Depends(get_db)):
     if settings.trading_mode == TradingMode.PAPER:
         return await get_paper_engine().get_positions(db)
     else:
-        broker = get_dhan_adapter()
+        broker = get_broker()
         return await broker.get_positions()
 
 
@@ -141,7 +141,7 @@ async def get_orders(db: AsyncSession = Depends(get_db)):
     if settings.trading_mode == TradingMode.PAPER:
         return await get_paper_engine().get_orders(db)
     else:
-        broker = get_dhan_adapter()
+        broker = get_broker()
         return await broker.get_orders()
 
 

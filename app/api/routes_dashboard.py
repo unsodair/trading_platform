@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.brokers.dhan_adapter import get_dhan_adapter
+from app.brokers.factory import get_broker
 from app.config import settings
 from app.database import get_db
 from app.discovery.github_scanner import get_github_scanner
@@ -43,7 +43,7 @@ async def dashboard_page(request: Request):
 @router.get("/api/dashboard/state")
 async def dashboard_state(db: AsyncSession = Depends(get_db)):
     """Return the full dashboard state as JSON."""
-    broker = get_dhan_adapter()
+    broker = get_broker()
 
     # Broker status
     try:

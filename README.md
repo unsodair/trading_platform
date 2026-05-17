@@ -9,6 +9,7 @@ A production-style, AI-powered algorithmic trading platform for Indian stock mar
 | Module | Description |
 |--------|-------------|
 | **Dhan Broker Adapter** | Full integration — holdings, positions, funds, orders, market data |
+| **Mock Broker Support** | Run paper trading immediately without signing in or providing broker credentials |
 | **Pluggable LLM Layer** | OpenAI, Anthropic Claude, Google Gemini, local Ollama |
 | **Strategy Plugin Engine** | Hot-loadable plugins with metadata, config, backtest support |
 | **Market Regime Detector** | SMA/ADX/BB/ATR-based classification (trending, range, volatile, event) |
@@ -122,8 +123,9 @@ copy .env.example .env       # Windows
 
 # Edit .env with your credentials
 # At minimum, set:
-#   DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN (for broker)
 #   One LLM API key (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
+# Note: DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN can be left blank!
+# If left blank, the platform automatically spawns a MockBroker so you can paper trade without signing in.
 ```
 
 ### 3. Run the Platform

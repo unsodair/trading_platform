@@ -16,4 +16,7 @@ services:
     restart: always
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/trading_platform.db
-      # You can override other settings here if needed
+      # For paper trading without logging in, DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN 
+      # can be left out of your .env or set as empty strings.
+      # - DHAN_CLIENT_ID=
+      # - DHAN_ACCESS_TOKEN=
